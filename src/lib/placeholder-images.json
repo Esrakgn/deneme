@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "camera-1",
+      "description": "Barn Interior",
+      "imageUrl": "https://images.unsplash.com/photo-1665246696455-8a87c5b60853?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiYXJuJTIwY293c3xlbnwwfHx8fDE3NTk2ODY3NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "barn cows"
+    },
+    {
+      "id": "camera-2",
+      "description": "Pasture View",
+      "imageUrl": "https://images.unsplash.com/photo-1634670263791-a8785c469c74?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGFzdHVyZSUyMGNvd3N8ZW58MHx8fHwxNzU5Njg2NzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pasture cows"
+    },
+    {
+      "id": "camera-3",
+      "description": "Feeding Trough",
+      "imageUrl": "https://images.unsplash.com/photo-1638909555449-795569a5ae53?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb3dzJTIwZWF0aW5nfGVufDB8fHx8MTc1OTY4Njc0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cows eating"
+    },
+    {
+      "id": "camera-4",
+      "description": "Milking Parlor",
+      "imageUrl": "https://images.unsplash.com/photo-1678739539134-91ecc412ea1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtaWxraW5nJTIwcGFybG9yfGVufDB8fHx8MTc1OTY4Njc0MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "milking parlor"
+    },
+    {
+      "id": "camera-5",
+      "description": "Calving Pen",
+      "imageUrl": "https://images.unsplash.com/photo-1594076585838-0ca957778f00?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjYWxmJTIwY293fGVufDB8fHx8MTc1OTY4Njc0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "calf cow"
+    },
+    {
+      "id": "login-background",
+      "description": "A herd of cows in a field at sunset.",
+      "imageUrl": "https://images.unsplash.com/photo-1570042707198-7b994d91c43d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb3dzJTIwaW4lMjBhJTIwZmllbGR8ZW58MHx8fHwxNzU5NjkxODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cows field"
+    }
+  ]
+}

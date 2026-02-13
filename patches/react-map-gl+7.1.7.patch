@@ -1,0 +1,45 @@
+diff --git a/node_modules/react-map-gl/dist/esm/exports-mapbox.js b/node_modules/react-map-gl/dist/esm/exports-mapbox.js
+index 7255422..41e63a1 100644
+--- a/node_modules/react-map-gl/dist/esm/exports-mapbox.js
++++ b/node_modules/react-map-gl/dist/esm/exports-mapbox.js
+@@ -13,7 +13,7 @@ export function useMap() {
+     return _useMap();
+ }
+ // @ts-ignore
+-const mapLib = import('mapbox-gl');
++const mapLib = import('maplibre-gl');
+ export const Map = (() => {
+     return React.forwardRef(function Map(props, ref) {
+         return _Map(props, ref, mapLib);
+diff --git a/node_modules/react-map-gl/dist/esm/mapbox/mapbox.js b/node_modules/react-map-gl/dist/esm/mapbox/mapbox.js
+index 9243765..71b3e94 100644
+--- a/node_modules/react-map-gl/dist/esm/mapbox/mapbox.js
++++ b/node_modules/react-map-gl/dist/esm/mapbox/mapbox.js
+@@ -1,5 +1,5 @@
+ // @ts-nocheck
+-import mapboxgl from 'mapbox-gl';
++import mapboxgl from 'maplibre-gl';
+ import { Map as MapboxMap } from 'mapbox-gl';
+ import { useEffect, useState, useMemo } from 'react';
+ import { Layer, Source } from '../components';
+diff --git a/node_modules/react-map-gl/dist/esm/resolve-mapbox-loader.js b/node_modules/react-map-gl/dist/esm/resolve-mapbox-loader.js
+index f107386..6385a53 100644
+--- a/node_modules/react-map-gl/dist/esm/resolve-mapbox-loader.js
++++ b/node_modules/react-map-gl/dist/esm/resolve-mapbox-loader.js
+@@ -11,7 +11,7 @@
+  * Attempts to require mapbox-gl-dist bundled in the app.
+  * @returns a mapboxgl.Map constructor if successful, otherwise null.
+  */
+-const mapboxgl = (() => {
++/* const mapboxgl = (() => {
+   try {
+     // eslint-disable-next-line import/no-unresolved
+     const mapbox = require('mapbox-gl');
+@@ -34,4 +34,4 @@
+     console.error(error); // eslint-disable-line
+     return null;
+   }
+-})();
++})(); */
++const mapboxgl = null;
+\ No newline at end of file
