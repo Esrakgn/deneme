@@ -1,7 +1,6 @@
+﻿'use client';
 
-'use client';
-
-import { useState, useContext, FormEvent, useEffect } from "react";
+import { useState, useContext, FormEvent } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -9,183 +8,307 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Syringe, PlusCircle, CheckCircle, Trash2 } from "lucide-react";
+import { Download, FileText, Search, Syringe, PlusCircle, CheckCircle, Trash2 } from "lucide-react";
 import { AnimalContext } from "@/context/AnimalContext";
 
 function getStatusVariant(status: string): "outline" | "secondary" | "default" | "destructive" {
-    switch (status) {
-        case "Yapıldı":
-            return "outline";
-        case "Bekleniyor":
-            return "secondary";
-        case "Gecikti":
-            return "destructive";
-        default:
-            return "default";
-    }
+  switch (status) {
+    case "Yapıldı":
+      return "outline";
+    case "Bekleniyor":
+      return "secondary";
+    case "Gecikti":
+      return "destructive";
+    default:
+      return "default";
+  }
+}
+
+function escapeCsv(value: string) {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export default function VaccineTrackingPage() {
   const { vaccineSchedule, addVaccineRecord, updateVaccineRecord, deleteVaccineRecord, animals } = useContext(AnimalContext);
-  const [newRecord, setNewRecord] = useState({ id: '', birthDate: '', vaccine: '', scheduledDate: '' });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [newRecord, setNewRecord] = useState({ id: "", birthDate: "", vaccine: "", scheduledDate: "" });
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAnimalSelectChange = (animalId: string) => {
-    const selectedAnimal = animals.find(animal => animal.id === animalId);
+    const selectedAnimal = animals.find((animal) => animal.id === animalId);
     if (selectedAnimal) {
-        setNewRecord(prev => ({ ...prev, id: selectedAnimal.id, birthDate: selectedAnimal.birthDate }));
+      setNewRecord((prev) => ({ ...prev, id: selectedAnimal.id, birthDate: selectedAnimal.birthDate }));
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewRecord(prev => ({ ...prev, [name]: value }));
+    setNewRecord((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setNewRecord(prev => ({ ...prev, [name]: value }));
+    setNewRecord((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddRecord = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newRecord.id && newRecord.vaccine && newRecord.scheduledDate) {
-        addVaccineRecord({
-            animalId: newRecord.id,
-            vaccine: newRecord.vaccine,
-            scheduledDate: newRecord.scheduledDate,
-        });
-        setNewRecord({ id: '', birthDate: '', vaccine: '', scheduledDate: '' });
+      addVaccineRecord({
+        animalId: newRecord.id,
+        vaccine: newRecord.vaccine,
+        scheduledDate: newRecord.scheduledDate,
+      });
+      setNewRecord({ id: "", birthDate: "", vaccine: "", scheduledDate: "" });
     } else {
-        alert("Lütfen tüm alanları doldurun.");
+      alert("Lütfen tüm alanları doldurun.");
     }
   };
 
   const handleMarkAsDone = (id: string) => {
-    updateVaccineRecord(id, { status: 'Yapıldı', appliedDate: new Date().toISOString().split('T')[0] });
+    updateVaccineRecord(id, { status: "Yapıldı", appliedDate: new Date().toISOString().split("T")[0] });
   };
-  
+
   const handleDeleteRecord = (id: string) => {
-    if(window.confirm(`${id} ID'li kaydı silmek istediğinizden emin misiniz?`)) {
+    if (window.confirm(`${id} ID'li kaydı silmek istediğinizden emin misiniz?`)) {
       deleteVaccineRecord(id);
     }
   };
 
-  const filteredSchedule = vaccineSchedule.filter(item => 
-    item.animalId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSchedule = vaccineSchedule.filter((item) => item.animalId.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const handleExportCsv = () => {
+    if (!filteredSchedule.length) {
+      alert("Dışa aktarılacak kayıt bulunamadı.");
+      return;
+    }
+
+    const headers = ["Kayıt ID", "Buzağı ID", "Aşı Adı", "Planlanan Tarih", "Uygulanma Tarihi", "Durum"];
+    const rows = filteredSchedule.map((item) => [
+      item.id,
+      item.animalId,
+      item.vaccine,
+      item.scheduledDate,
+      item.appliedDate || "-",
+      item.status,
+    ]);
+
+    const csv = [headers.map(escapeCsv).join(","), ...rows.map((row) => row.map(escapeCsv).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `asi-takibi-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPdf = () => {
+    if (!filteredSchedule.length) {
+      alert("Dışa aktarılacak kayıt bulunamadı.");
+      return;
+    }
+
+    const rowsHtml = filteredSchedule
+      .map(
+        (item) => `
+          <tr>
+            <td>${escapeHtml(item.id)}</td>
+            <td>${escapeHtml(item.animalId)}</td>
+            <td>${escapeHtml(item.vaccine)}</td>
+            <td>${escapeHtml(item.scheduledDate)}</td>
+            <td>${escapeHtml(item.appliedDate || "-")}</td>
+            <td>${escapeHtml(item.status)}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+
+    win.document.write(`
+      <!doctype html>
+      <html lang="tr">
+        <head>
+          <meta charset="utf-8" />
+          <title>Aşı Takibi Raporu</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+            h1 { margin: 0 0 8px; font-size: 20px; }
+            p { margin: 0 0 16px; color: #555; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background: #f6f6f6; }
+          </style>
+        </head>
+        <body>
+          <h1>Aşı Takibi Raporu</h1>
+          <p>Oluşturma tarihi: ${new Date().toLocaleString("tr-TR")}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Kayıt ID</th>
+                <th>Buzağı ID</th>
+                <th>Aşı Adı</th>
+                <th>Planlanan Tarih</th>
+                <th>Uygulanma Tarihi</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    win.document.close();
+    win.focus();
+    win.print();
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline">Yeni Doğan Aşı Takibi</h1>
-      
+      <h1 className="font-headline text-3xl font-bold">Yeni Doğan Aşı Takibi</h1>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-            <Card>
-                <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Syringe /> Aşı Takvimi</CardTitle>
-                <CardDescription>Yeni doğan buzağıların kritik aşı takvimini oluşturun, planlayın ve gecikmeleri önleyin.</CardDescription>
-                <div className="flex items-center pt-4">
-                    <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Buzağı ID'si ile ara..." 
-                            className="pl-8" 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2"><Syringe /> Aşı Takvimi</CardTitle>
+                  <CardDescription>Yeni doğan buzağıların kritik aşı takvimini oluşturun, planlayın ve gecikmeleri önleyin.</CardDescription>
                 </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Buzağı ID</TableHead>
-                        <TableHead>Aşı Adı</TableHead>
-                        <TableHead>Planlanan Tarih</TableHead>
-                        <TableHead>Uygulanma Tarihi</TableHead>
-                        <TableHead>Durum</TableHead>
-                        <TableHead className="text-right">Eylemler</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredSchedule.map((calf) => (
-                        <TableRow key={calf.id}>
-                            <TableCell className="font-medium">{calf.animalId}</TableCell>
-                            <TableCell>{calf.vaccine}</TableCell>
-                            <TableCell>{calf.scheduledDate}</TableCell>
-                            <TableCell>{calf.appliedDate || '-'}</TableCell>
-                            <TableCell>
-                                <Badge variant={getStatusVariant(calf.status)}>{calf.status}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                               <div className="flex items-center justify-end gap-2">
-                                  {calf.status !== 'Yapıldı' && (
-                                      <Button variant="outline" size="sm" onClick={() => handleMarkAsDone(calf.id)}>
-                                          <CheckCircle className="mr-1 h-4 w-4" />
-                                          Uygulandı
-                                      </Button>
-                                  )}
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteRecord(calf.id)}>
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                               </div>
-                            </TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleExportCsv}>
+                    <Download className="mr-2 h-4 w-4" />
+                    CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExportPdf}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    PDF
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center pt-4">
+                <div className="relative w-full max-w-sm">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buzağı ID'si ile ara..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Buzağı ID</TableHead>
+                    <TableHead>Aşı Adı</TableHead>
+                    <TableHead>Planlanan Tarih</TableHead>
+                    <TableHead>Uygulanma Tarihi</TableHead>
+                    <TableHead>Durum</TableHead>
+                    <TableHead className="text-right">Eylemler</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSchedule.map((calf) => (
+                    <TableRow key={calf.id}>
+                      <TableCell className="font-medium">{calf.animalId}</TableCell>
+                      <TableCell>{calf.vaccine}</TableCell>
+                      <TableCell>{calf.scheduledDate}</TableCell>
+                      <TableCell>{calf.appliedDate || "-"}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(calf.status)}>{calf.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {calf.status !== "Yapıldı" && (
+                            <Button variant="outline" size="sm" onClick={() => handleMarkAsDone(calf.id)}>
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Uygulandı
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteRecord(calf.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
+
         <div>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><PlusCircle /> Yeni Aşı Kaydı Ekle</CardTitle>
-                    <CardDescription>Takvime yeni bir aşı planı ekleyin.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleAddRecord} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="animalId">Buzağı ID</Label>
-                            <Select name="id" onValueChange={handleAnimalSelectChange} value={newRecord.id}>
-                                <SelectTrigger id="animalId">
-                                    <SelectValue placeholder="Hayvan seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {animals.map(animal => (
-                                        <SelectItem key={animal.id} value={animal.id}>{animal.tagNumber} ({animal.breed})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="birthDate">Doğum Tarihi</Label>
-                            <Input id="birthDate" name="birthDate" type="date" value={newRecord.birthDate} onChange={handleInputChange} disabled />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="vaccine">Aşı Adı</Label>
-                            <Select name="vaccine" onValueChange={(value) => handleSelectChange('vaccine', value)} value={newRecord.vaccine}>
-                                <SelectTrigger id="vaccine">
-                                    <SelectValue placeholder="Aşı seçin" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="IBR-BVD-PI3-BRSV (Karma 5)">IBR-BVD-PI3-BRSV (Karma 5)</SelectItem>
-                                    <SelectItem value="Clostridial (Kara Hastalık)">Clostridial (Kara Hastalık)</SelectItem>
-                                    <SelectItem value="Leptospira">Leptospira</SelectItem>
-                                    <SelectItem value="Brusella">Brusella</SelectItem>
-                                    <SelectItem value="Şap">Şap</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="scheduledDate">Planlanan Tarih</Label>
-                            <Input id="scheduledDate" name="scheduledDate" type="date" value={newRecord.scheduledDate} onChange={handleInputChange} />
-                        </div>
-                        <Button type="submit" className="w-full">Kaydı Ekle</Button>
-                    </form>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><PlusCircle /> Yeni Aşı Kaydı Ekle</CardTitle>
+              <CardDescription>Takvime yeni bir aşı planı ekleyin.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAddRecord} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="animalId">Buzağı ID</Label>
+                  <Select name="id" onValueChange={handleAnimalSelectChange} value={newRecord.id}>
+                    <SelectTrigger id="animalId">
+                      <SelectValue placeholder="Hayvan seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {animals.map((animal) => (
+                        <SelectItem key={animal.id} value={animal.id}>{animal.tagNumber} ({animal.breed})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="birthDate">Doğum Tarihi</Label>
+                  <Input id="birthDate" name="birthDate" type="date" value={newRecord.birthDate} onChange={handleInputChange} disabled />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vaccine">Aşı Adı</Label>
+                  <Select name="vaccine" onValueChange={(value) => handleSelectChange("vaccine", value)} value={newRecord.vaccine}>
+                    <SelectTrigger id="vaccine">
+                      <SelectValue placeholder="Aşı seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="IBR-BVD-PI3-BRSV (Karma 5)">IBR-BVD-PI3-BRSV (Karma 5)</SelectItem>
+                      <SelectItem value="Clostridial (Kara Hastalık)">Clostridial (Kara Hastalık)</SelectItem>
+                      <SelectItem value="Leptospira">Leptospira</SelectItem>
+                      <SelectItem value="Brusella">Brusella</SelectItem>
+                      <SelectItem value="Şap">Şap</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scheduledDate">Planlanan Tarih</Label>
+                  <Input id="scheduledDate" name="scheduledDate" type="date" value={newRecord.scheduledDate} onChange={handleInputChange} />
+                </div>
+
+                <Button type="submit" className="w-full">Kaydı Ekle</Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

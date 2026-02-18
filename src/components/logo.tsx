@@ -1,36 +1,44 @@
+﻿import type { ComponentProps } from "react";
+
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 export function Logo({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 py-2 rounded-2xl",
-        "bg-white/10 backdrop-blur-md border border-white/20 shadow-sm",
-        "hover:shadow-md transition-all duration-300",
+        "inline-flex h-12 items-center gap-2 rounded-xl border border-border/60 bg-card/70 px-2.5 text-foreground shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60",
+        "transition-all duration-200 hover:border-primary/40 hover:shadow-md",
         className
       )}
       {...props}
     >
-      {/* Logo Container */}
-      <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-white shadow-md">
+      {/* Icon-only view for collapsed sidebar: crops left side of the full logo */}
+      <div className="relative hidden h-8 w-8 overflow-hidden rounded-md border border-primary/25 bg-white/95 group-data-[collapsible=icon]:block">
         <Image
           src="/logoo.png"
-          alt="VetAI Logo"
-          width={50}
-          height={50}
-          className="object-contain drop-shadow-md"
+          alt="VetAI"
+          fill
+          sizes="32px"
+          className="object-contain object-left p-1"
           priority
         />
       </div>
 
-      {/* Brand Text */}
-      <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-500 to-blue-600 bg-clip-text text-transparent">
-        VetAI
-      </span>
+      {/* Full logo for normal/expanded states */}
+      <div className="relative h-8 w-[146px] shrink-0 group-data-[collapsible=icon]:hidden">
+        <Image
+          src="/logoo.png"
+          alt="VetAI"
+          fill
+          sizes="146px"
+          className="object-contain object-left"
+          priority
+        />
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-
+﻿
 'use client';
 
 import {
@@ -9,7 +9,6 @@ import {
   SidebarFooter,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { HeartPulse } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
@@ -24,22 +23,22 @@ export default function AppLayout({
   return (
     <AnimalProvider>
       <SidebarProvider>
-        <Sidebar>
-          <SidebarHeader>
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
+        <Sidebar variant="inset" collapsible="icon" className="border-sidebar-border/60">
+          <SidebarHeader className="px-3 pt-3">
+            <Link href="/dashboard" className="inline-flex">
               <Logo />
             </Link>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="px-2 pb-2">
             <SidebarNav />
           </SidebarContent>
-          <SidebarFooter>
-              <div className="text-xs text-sidebar-foreground/50 p-2 text-center">
+          <SidebarFooter className="px-2 pb-3">
+              <div className="rounded-lg border border-sidebar-border/60 bg-sidebar-accent/25 p-2 text-center text-xs text-sidebar-foreground/70">
                   © {new Date().getFullYear()} VetAI Inc.
               </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="bg-gradient-to-b from-background to-background/95">
           <Header />
           <main className="flex-1 p-4 sm:p-6">{children}</main>
         </SidebarInset>
@@ -47,3 +46,6 @@ export default function AppLayout({
     </AnimalProvider>
   );
 }
+
+
+
